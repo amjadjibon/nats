@@ -1,0 +1,13 @@
+version: "1"
+
+capabilities:
+  - contract_id: "abesh:nats:server"
+    values:
+      jetstream: true
+      http_port: 8222
+
+rpcs:
+  - rpc: "abesh:nats:server"
+
+start:
+  - "abesh:nats:server"
