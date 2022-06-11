@@ -26,23 +26,22 @@ type KV struct {
 	mKVBucketStorage      int
 	mKVBucketReplicas     int
 	mKVBucketPlacement    []string
-
-	mEncoding           encodingIface.IEncoding
-	mEncodingName       string
-	mNatsUrl            string
-	mClientName         string
-	mUsername           string
-	mPassword           string
-	mMaxReconnects      int
-	mReconnectWait      time.Duration
-	mTimeout            time.Duration
-	mReconnectJitter    time.Duration
-	mReconnectJitterTLS time.Duration
-	mPingInterval       time.Duration
-	mMaxPingOut         int
-	mReconnectBufSize   int
-	mDrainTimeout       time.Duration
-	mCapabilityRegistry iface.ICapabilityRegistry
+	mEncoding             encodingIface.IEncoding
+	mEncodingName         string
+	mNatsUrl              string
+	mClientName           string
+	mUsername             string
+	mPassword             string
+	mMaxReconnects        int
+	mReconnectWait        time.Duration
+	mTimeout              time.Duration
+	mReconnectJitter      time.Duration
+	mReconnectJitterTLS   time.Duration
+	mPingInterval         time.Duration
+	mMaxPingOut           int
+	mReconnectBufSize     int
+	mDrainTimeout         time.Duration
+	mCapabilityRegistry   iface.ICapabilityRegistry
 }
 
 func (k *KV) Name() string {
@@ -96,12 +95,7 @@ func (k *KV) GetConfigMap() model.ConfigMap {
 	return k.mCM
 }
 
-func (k *KV) Setup() error {
-	k.mEncoding = encodingRegistry.EncodingRegistry().GetEncoding(k.mEncodingName)
-	if k.mEncoding == nil {
-		panic("encoding not found")
-	}
-
+func (k *KV) getKV() (nats.KeyValue, error) {
 	var opts []nats.Option
 	opts = append(opts, nats.Name(k.mClientName))
 	opts = append(opts, nats.MaxReconnects(k.mMaxReconnects))
@@ -113,23 +107,18 @@ func (k *KV) Setup() error {
 	opts = append(opts, nats.ReconnectBufSize(k.mReconnectBufSize))
 	opts = append(opts, nats.DrainTimeout(k.mDrainTimeout))
 	opts = append(opts, nats.UserInfo(k.mUsername, k.mPassword))
-
 	connect, err := nats.Connect(k.mNatsUrl, opts...)
 	for err != nil {
-		return err
+		return nil, err
 	}
-
 	stream, err := connect.JetStream()
 	if err != nil {
-		return err
+		return nil, err
 	}
-
 	kv, err := stream.KeyValue(k.mKVBucket)
 	if err == nil {
-		k.mKV = kv
-		return nil
+		return kv, nil
 	}
-
 	if err == nats.ErrBucketNotFound {
 		kv, err = stream.CreateKeyValue(&nats.KeyValueConfig{
 			Bucket:       k.mKVBucket,
@@ -141,37 +130,72 @@ func (k *KV) Setup() error {
 			Storage:      nats.StorageType(k.mKVBucketStorage),
 			Replicas:     k.mKVBucketReplicas,
 		})
-
 		if err == nil {
-			k.mKV = kv
-			return nil
+			return kv, nil
 		}
 	}
-
-	return err
+	return nil, err
 }
 
-func (k *KV) Get(ctx context.Context, key string, value interface{}) error {
-	var get, err = k.mKV.Get(key)
-	if err == nil {
-		return err
+func (k *KV) SetKV() error {
+	if k.mKV != nil {
+		return nil
 	}
-	return k.mEncoding.Unmarshal(get.Value(), value)
-}
 
-func (k *KV) Set(ctx context.Context, key string, value interface{}, ttl time.Duration) error {
-	var data, err = k.mEncoding.Marshal(value)
+	kv, err := k.getKV()
 	if err != nil {
 		return err
 	}
-	_, err = k.mKV.Create(key, data)
-	if err != nil {
-		return err
+
+	k.mKV = kv
+	
+	return nil
+}
+
+func (k *KV) Setup() error {
+	k.mEncoding = encodingRegistry.EncodingRegistry().GetEncoding(k.mEncodingName)
+	if k.mEncoding == nil {
+		panic("encoding not found")
 	}
 	return nil
 }
 
+func (k *KV) Get(ctx context.Context, key string, value interface{}) error {
+	if err := k.SetKV(); err != nil {
+		return err
+	}
+
+	get, err := k.mKV.Get(key)
+	if err == nil {
+		return err
+	}
+
+	return k.mEncoding.Unmarshal(get.Value(), value)
+}
+
+func (k *KV) Set(ctx context.Context, key string, value interface{}, ttl time.Duration) error {
+	if err := k.SetKV(); err != nil {
+		return err
+	}
+
+	var data, err = k.mEncoding.Marshal(value)
+	if err != nil {
+		return err
+	}
+
+	_, err = k.mKV.Create(key, data)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
 func (k *KV) Delete(ctx context.Context, key string) error {
+	if err := k.SetKV(); err != nil {
+		return err
+	}
+
 	return k.mKV.Delete(key)
 }
 
