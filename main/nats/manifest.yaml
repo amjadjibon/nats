@@ -2,6 +2,7 @@ version: "1"
 
 capabilities:
   - contract_id: "abesh:nats:server"
+  - contract_id: "abesh:nats:kv"
 
 rpcs:
   - rpc: "abesh:nats:server"

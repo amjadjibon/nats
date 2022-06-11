@@ -331,7 +331,6 @@ func (n *Nats) Setup() error {
 	}
 
 	srv.ConfigureLogger()
-
 	n.mServer = srv
 	return nil
 }
