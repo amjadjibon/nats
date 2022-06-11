@@ -158,9 +158,9 @@ func (n *Nats) SetConfigMap(cm model.ConfigMap) error {
 	n.mMaxConn = cm.Int("max_connections", 0)
 	n.mMaxSubs = cm.Int("max_subscriptions", 0)
 	n.mMaxSubTokens = cm.Uint8("max_sub_tokens", 0)
-	n.mNKeys = []*server.NkeyUser{}
-	n.mUsers = []*server.User{}
-	n.mAccounts = []*server.Account{}
+	n.mNKeys = nil
+	n.mUsers = nil
+	n.mAccounts = nil
 	n.mNoAuthUser = cm.String("no_auth_user", "")
 	n.mSystemAccount = cm.String("system_account", "")
 	n.mNoSystemAccount = cm.Bool("no_system_account", false)
@@ -199,7 +199,7 @@ func (n *Nats) SetConfigMap(cm model.ConfigMap) error {
 	n.mLogSizeLimit = cm.Int64("log_size_limit", 0)
 	n.mSyslog = cm.Bool("syslog", false)
 	n.mRemoteSyslog = cm.String("remote_syslog", "")
-	n.mRoutes = []*url.URL{}
+	n.mRoutes = nil
 	n.mRoutesStr = cm.String("routes_str", "")
 	n.mTLSTimeout = cm.Float64("tls_timeout", 0)
 	n.mTLSMap = cm.Bool("tls", false)
@@ -208,8 +208,8 @@ func (n *Nats) SetConfigMap(cm model.ConfigMap) error {
 	n.mTLSCert = cm.String("tls_cert", "")
 	n.mTLSKey = cm.String("tls_key", "")
 	n.mTLSCaCert = cm.String("tls_ca_cert", "")
-	n.mTLSConfig = &tls.Config{}
-	n.mTLSPinnedCerts = server.PinnedCertSet{}
+	n.mTLSConfig = nil
+	n.mTLSPinnedCerts = nil
 	n.mTLSRateLimit = cm.Int64("tls_rate_limit", 0)
 	n.mAllowNonTLS = cm.Bool("allow_non_tls", false)
 	n.mWriteDeadline = cm.Duration("write_deadline", 0)
@@ -218,17 +218,17 @@ func (n *Nats) SetConfigMap(cm model.ConfigMap) error {
 	n.mLameDuckGracePeriod = cm.Duration("lame_duck_grace_period", 0)
 	n.mMaxTracedMsgLen = cm.Int("max_traced_msg_len", 0)
 	n.mTrustedKeys = cm.StringList("trusted_keys", ",", []string{})
-	n.mTrustedOperators = []*jwt.OperatorClaims{}
+	n.mTrustedOperators = nil
 	n.mAccountResolver = nil
-	n.mAccountResolverTLSConfig = &tls.Config{}
+	n.mAccountResolverTLSConfig = nil
 	n.mAlwaysEnableNonce = cm.Bool("always_enable_nonce", false)
 	n.mCustomClientAuthentication = nil
 	n.mCustomRouterAuthentication = nil
 	n.mCheckConfig = cm.Bool("check_config", false)
 	n.mConnectErrorReports = cm.Int("connect_error_reports", 0)
 	n.mReconnectErrorReports = cm.Int("reconnect_error_reports", 0)
-	n.mTags = jwt.TagList{}
-	n.mOCSPConfig = &server.OCSPConfig{}
+	n.mTags = nil
+	n.mOCSPConfig = nil
 	return nil
 }
 
