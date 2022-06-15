@@ -1,0 +1,35 @@
+version: "1"
+
+capabilities:
+  - contract_id: "abesh:nats:metric"
+    values:
+      url: "http://localhost:18222"
+      listen_address: "0.0.0.0"
+      listen_port: "7777"
+      scrap_path: "/metrics"
+      get_connz: true
+      get_varz: true
+      get_subz: true
+      get_routez: true
+      get_gatewayz: true
+      get_leafz: true
+      get_replicator_varz: false
+      get_streaming_channelz: true
+      get_streaming_serverz: true
+      get_jsz_filter: ""
+      retry_interval: "30s"
+      cert_file: ""
+      key_file: ""
+      ca_file: ""
+      nats_server_url:
+      nats_server_tag:
+      http_user: user
+      http_password: pass
+      prefix: "nats"
+      user_internal_server_id: true
+
+rpcs:
+  - rpc: "abesh:nats:metric"
+
+start:
+  - "abesh:nats:metric"

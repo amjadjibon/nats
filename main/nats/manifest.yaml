@@ -2,10 +2,13 @@ version: "1"
 
 capabilities:
   - contract_id: "abesh:nats:server"
+#  - contract_id: "abesh:nats:metric"
   - contract_id: "abesh:nats:kv"
 
 rpcs:
   - rpc: "abesh:nats:server"
+#  - rpc: "abesh:nats:metric"
 
 start:
   - "abesh:nats:server"
+#  - "abesh:nats:metric"
